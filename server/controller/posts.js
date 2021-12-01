@@ -5,7 +5,6 @@ import PostMessage from "../models/postMessage.js";
 
 const router = express.Router();
 
-
 // CRUD - Create, Read, Update, Delete
 export const createPost = async (req, res) => {
     const post = req.body;
@@ -19,19 +18,9 @@ export const createPost = async (req, res) => {
     } catch (error) {
         res.status(409).json({ message: error })
     }
-}
+};
 
-export const getPosts = async (req, res) => {
-    try {
-        const allPosts = await PostMessage.find();
-
-        res.status(200).json(allPosts);
-    } catch (error) {
-        res.status(404).json({ message: error })
-    }
-}
-
-export const getSinglePost = async (req, res) => {
+export const getPost = async (req, res) => {
     const { id } = req.params;
 
     try {
@@ -40,6 +29,36 @@ export const getSinglePost = async (req, res) => {
         res.status(200).json(post);
     } catch (error) {
         res.status(404).json({ message: error })
+    }
+};
+
+export const getPosts = async (req, res) => {
+    const { page } = req.query;
+    
+    try {
+        const LIMIT = 8;
+        const startIndex = (Number(page) - 1) * LIMIT;
+    
+        const total = await PostMessage.countDocuments({});
+        const posts = await PostMessage.find().sort({ _id: -1 }).limit(LIMIT).skip(startIndex);
+
+        res.json({ data: posts, currentPage: Number(page), numberOfPages: Math.ceil(total / LIMIT)});
+    } catch (error) {    
+        res.status(404).json({ message: error});
+    }
+};
+
+export const getPostsBySearch = async (req, res) => {
+    const { searchQuery, tags } = req.query;
+
+    try {
+        const title = new RegExp(searchQuery, "i");
+
+        const posts = await PostMessage.find({ $or: [ { title }, { tags: { $in: tags.split(',') } } ]});
+
+        res.json({ data: posts });
+    } catch (error) {    
+        res.status(404).json({ message: error });
     }
 }
 
@@ -54,7 +73,7 @@ export const updatePost = async (req, res) => {
     await PostMessage.findByIdAndUpdate(id, updatePost, { new: true });
 
     res.json(updatePost);
-}
+};
 
 export const deletePost = async (req, res) => {
     const { id } = req.params;
@@ -64,7 +83,7 @@ export const deletePost = async (req, res) => {
     await PostMessage.findByIdAndRemove(id);
 
     res.json({ message: "Post deleted successfully..." });
-}
+};
 
 export const likePost = async (req, res) => {
     const { id } = req.params;
@@ -91,6 +110,6 @@ export const likePost = async (req, res) => {
     const updateLike = await PostMessage.findByIdAndUpdate(id, post, { new: true });
 
     res.json(updateLike);
-}
+};
 
 export default router;

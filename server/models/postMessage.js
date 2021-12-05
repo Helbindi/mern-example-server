@@ -5,6 +5,7 @@ const postSchema = mongoose.Schema({
     message: String,
     username: String,
     creator: String,
+    mode: String,
     tags: [String],
     likes: { 
         type: [String], 
@@ -19,6 +20,6 @@ const postSchema = mongoose.Schema({
     // "__v" is a version key. Default 0.
 })
 
-var PostMessage = mongoose.model('PostMessage', postSchema);
+var PostMessage = mongoose.model('Posts', postSchema);
 
 export default PostMessage;

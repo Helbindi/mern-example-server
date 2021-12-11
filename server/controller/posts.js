@@ -16,7 +16,7 @@ export const createPost = async (req, res) => {
 
         res.status(201).json(newPost);
     } catch (error) {
-        res.status(409).json({ message: error })
+        res.status(409).json({ message: error });
     }
 };
 
@@ -28,7 +28,7 @@ export const getPost = async (req, res) => {
         
         res.status(200).json(post);
     } catch (error) {
-        res.status(404).json({ message: error })
+        res.status(404).json({ message: error });
     }
 };
 
@@ -49,12 +49,27 @@ export const getPosts = async (req, res) => {
 };
 
 export const getPostsBySearch = async (req, res) => {
-    const { searchQuery, tags } = req.query;
+    const { page, searchQuery, tags } = req.query;
 
     try {
-        const title = new RegExp(searchQuery, "i");
+        const LIMIT = 8;
+        const startIndex = (Number(page) - 1) * LIMIT;
+        const mode = new RegExp(searchQuery, "i");
 
-        const posts = await PostMessage.find({ $or: [ { title }, { tags: { $in: tags.split(',') } } ]});
+        const total = await PostMessage.countDocuments({ $or: [ { mode }, { tags: { $in: tags.split(',') } } ]});
+        const posts = await PostMessage.find({ $or: [ { mode }, { tags: { $in: tags.split(',') } } ]}).sort({ _id: -1 }).limit(LIMIT).skip(startIndex);
+
+        res.json({ data: posts, currentPage: Number(page), numberOfPages: Math.ceil(total / LIMIT)});
+    } catch (error) {    
+        res.status(404).json({ message: error });
+    }
+}
+
+export const getPostsByUser = async (req, res) => {
+    const { id } = req.query;
+
+    try {
+        const posts = await PostMessage.find({creator: id}).sort({ _id: -1 });
 
         res.json({ data: posts });
     } catch (error) {    

@@ -16,7 +16,7 @@ app.use(bodyParser.urlencoded({ limit: '30mb', extended: true }))
 app.use(cors());
 
 app.use('/posts', postRoutes);
-app.use("/user", userRoutes);
+app.use('/user', userRoutes);
 
 mongoose.connect(process.env.MONGODB_CONNECTION)
     .then(() => app.listen(PORT, () => console.log(`Server Running on Port: http://localhost:${PORT}`)))
